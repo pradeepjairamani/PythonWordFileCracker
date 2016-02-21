@@ -1,0 +1,121 @@
+#!/usr/bin/env python
+#Robert Feeney - @Feeney92 - C10714835@student.dit.ie
+#DT228B/1S
+
+#This script was crated for my MSc for Mobile Device Forensics Module.
+
+#Purpose: To crack a Word File using a Dictionary Attack & Ensure Its Integrity
+		
+#								- SHA-1
+#								- SHA-256
+#								- SHA-512
+#								- SHA-3
+
+# Import the Necessary libraries for the script to function. The SHA-3 Library & win32.com is not native to python and as such must be added externally #
+import hashlib
+import sys
+import getopt
+import sha3
+import time
+import win32com.client as win32
+
+
+#Function Reused from Lab 2 that hashes the file in question.
+def HashFile1(TargetFile):
+
+	BLOCKSIZE = 65536
+	SHA1_FileHash = hashlib.sha1()
+	with open(TargetFile, 'rb') as afile:
+		buf = afile.read(BLOCKSIZE)
+		while len(buf) > 0:
+			SHA1_FileHash.update(buf)
+			buf = afile.read(BLOCKSIZE)
+		
+	print("Your SHA-1 Hash is: \n",SHA1_FileHash.hexdigest())
+	print("")
+	
+	
+	BLOCKSIZE = 65536
+	SHA256_FileHash = hashlib.sha256()
+	with open(TargetFile, 'rb') as afile:
+		buf = afile.read(BLOCKSIZE)
+		while len(buf) > 0:
+			SHA256_FileHash.update(buf)
+			buf = afile.read(BLOCKSIZE)
+		
+	print("Your SHA-256 Hash is : \n",SHA256_FileHash.hexdigest())
+	print("")
+	
+	
+	BLOCKSIZE = 65536
+	SHA512_FileHash = hashlib.sha512()
+	with open(TargetFile, 'rb') as afile:
+		buf = afile.read(BLOCKSIZE)
+		while len(buf) > 0:
+			SHA512_FileHash.update(buf)
+			buf = afile.read(BLOCKSIZE)
+		
+	print("Your SHA-512 Hash is : \n",SHA512_FileHash.hexdigest())
+	print("")
+	
+	
+	BLOCKSIZE = 65536
+	SHA3256_FileHash = sha3.sha3_256()
+	with open(TargetFile, 'rb') as afile:
+		buf = afile.read(BLOCKSIZE)
+		while len(buf) > 0:
+			SHA3256_FileHash.update(buf)
+			buf = afile.read(BLOCKSIZE)
+		
+	print("Your SHA-3 256 Hash is : \n",SHA3256_FileHash.hexdigest())
+	print("")
+	
+	
+	BLOCKSIZE = 65536
+	SHA3512_FileHash = sha3.sha3_512()
+	with open(TargetFile, 'rb') as afile:
+		buf = afile.read(BLOCKSIZE)
+		while len(buf) > 0:
+			SHA3512_FileHash.update(buf)
+			buf = afile.read(BLOCKSIZE)
+		
+	print("Your SHA-3 512 Hash is : \n",SHA3512_FileHash.hexdigest())
+	print("")
+	return SHA3512_FileHash
+	
+#Function used to open up the word document, pass in the wordlist file password values and attempt to open the Word File
+def crackFile(WordList,FileToCrack):
+        word = win32.Dispatch("Word.Application") 
+        PasswordFile = open(WordList, 'r')#Open the list of potential Strings
+        Strings = PasswordFile.readlines()
+        PasswordFile.close()
+        Strings = [item.rstrip('\n') for item in Strings]
+		
+		#Enumerates through the file. attempting each of the strings listed in the WordList until it identifies the correct one
+        for password in Strings:
+            try:
+                doc = word.Documents.Open(FileToCrack,False,True,None,password)
+                doc.Close()
+                return str(password)
+            except Exception as error:
+                pass
+        return ""
+
+TargetFile = r"C:\Users\robf\Documents\College\1st Year\Semester 2\Mobile Device Forensics\Labs\Lab 3\MDF-SF2.docx"
+WordListToUse = r"C:\Users\robf\Documents\College\1st Year\Semester 2\Mobile Device Forensics\Labs\Lab 3\WordList.txt"
+print("")
+print("The File Will First Be Hashed To Ensure Integrity")
+print("")
+time.sleep(3)
+HashFile1(TargetFile)
+time.sleep(3)
+print("File Cracking Will Now Begin")
+print("")
+passwordValue = crackFile(WordListToUse,TargetFile)
+time.sleep(3)
+print("Password is ",passwordValue)
+print("")
+time.sleep(2)
+print("The File Will now be hashed again in order to ensure integrity")
+print("")
+HashFile1(TargetFile)
